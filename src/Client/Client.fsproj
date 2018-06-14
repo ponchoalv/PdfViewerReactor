@@ -12,6 +12,7 @@
     <Compile Include="Pdf\Components\PageControl\PageNumbField.fs" />
     <Compile Include="Pdf\Components\PageControl\ZoomField.fs" />
     <Compile Include="Pdf\Components\Paginator.fs" />
+    <Compile Include="Pdf\Components\PdfComponent.fs" />
     <Compile Include="Pdf\ReactPDF.fs" />
     <Compile Include="Client.fs" />
   </ItemGroup>

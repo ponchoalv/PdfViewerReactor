@@ -4,7 +4,6 @@ open Elmish
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Helpers.React
-open Fable.Helpers.React.Props
 open Fable.Import.React
 open Fable.PowerPack
 open Fulma
@@ -13,6 +12,7 @@ open ZoomField
 open PageNumbField
 open FileShow
 open FileSearch
+open Paginator
 
 type Msg =
     | SetNumPages of int
@@ -136,78 +136,24 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _, UpdateZoomFieldValue value -> { model with ZoomFieldState = value }, Cmd.none 
     | _, UpdateZoomEditingStatus -> { model with IsZoomFieldEditingDisabled = not model.IsZoomFieldEditingDisabled }, Cmd.none
 
-let private paginationTile (model : Model) (dispatch : Msg -> unit) =
-    Tile.child [] [ Box.box' [] [ (match model with
-                                            | { NumPages = Some pages } ->
-                                                Pagination.pagination [ Pagination.IsCentered ]
-                                                    [ Pagination.previous [ Props [ Props.OnClick
-                                                                                        (match model.CurrentPage with
-                                                                                         | 1 -> (fun _ -> dispatch NoChange)
-                                                                                         | _ ->
-                                                                                             (fun _ ->
-                                                                                             dispatch DecrementCurrentPage))
-                                                                                    Props.Disabled(model.CurrentPage = 1) ] ]
-                                                          [ str "Anterior" ]
-                                                      Pagination.next [ Props [ Props.OnClick
-                                                                                    (match model.CurrentPage with
-                                                                                     | _ when model.CurrentPage = pages ->
-                                                                                         (fun _ -> dispatch NoChange)
-                                                                                     | _ ->
-                                                                                         (fun _ -> dispatch IncrementCurrentPage))
-                                                                                Props.Disabled(model.CurrentPage = pages) ] ]
-                                                          [ str "Siguiente" ]
-                                                      Pagination.list []
-                                                          [ let pagesItems =
-                                                                seq {
-                                                                    for page in 1..pages do
-                                                                        yield Pagination.link
-                                                                                  [ Pagination.Link.Current
-                                                                                        (page = model.CurrentPage)
 
-                                                                                    Pagination.Link.Props
-                                                                                        [ Props.OnClick
-                                                                                              (match model.CurrentPage with
-                                                                                               | _ when model.CurrentPage = page ->
-                                                                                                   (fun _ -> dispatch NoChange)
-                                                                                               | _ ->
-                                                                                                   (fun _ ->
-                                                                                                   dispatch (SetPage page))) ] ]
-                                                                                  [ str (sprintf "%i" page) ]
-                                                                }
-
-                                                            let showedPagesItems items position =
-                                                                match items with
-                                                                | list when pages < model.MaxItems -> list |> Seq.toList
-                                                                | list ->
-                                                                    match position with
-                                                                    | position when position < (pages - model.MaxItems) ->
-                                                                        list
-                                                                        |> Seq.skip ( position - (position % model.MaxItems))
-                                                                        |> Seq.truncate model.MaxItems
-                                                                        |> Seq.toList
-                                                                    | _ ->
-                                                                        list
-                                                                        |> Seq.skip (pages - model.MaxItems)
-                                                                        |> Seq.truncate model.MaxItems
-                                                                        |> Seq.toList
-
-                                                            yield! showedPagesItems pagesItems (model.CurrentPage - 1) ] ]
-                                                | _ -> str "No hay un documento cargado") ] ]
-
+let private paginationView model dispatch =
+    paginationTile 
+        model.NumPages
+        model.CurrentPage
+        (fun _ -> dispatch DecrementCurrentPage)
+        (fun _ -> dispatch IncrementCurrentPage)
+        (fun page -> (fun _ -> dispatch (SetPage page)))
+        model.MaxItems 
 let private fileShowFieldsView model =
     fileShowField model.FileName
 
 let private fileSearchFieldsView model dispatch =
-    let onClickFunc = (fun _ -> match model.FieldFileName with
-                                    | Some filename -> dispatch (LoadFile filename)
-                                    | None -> dispatch NoChange)
-    fileSearchField
-        (match model.FieldFileName with
-           | Some filename -> filename
-           | None -> "" )
+    let loadFileAction filename = dispatch (LoadFile filename)
+    
+    fileSearchField model.FieldFileName
         (fun e -> dispatch (UpdateFieldFileName !!e.Value))
-        onClickFunc
-        onClickFunc
+        loadFileAction
 
 let private headerTile model dispatch =
     Tile.child [] [ Box.box' [] [ Columns.columns [] [ fileShowFieldsView model
@@ -270,5 +216,5 @@ let view (model : Model) (dispatch : Msg -> unit) =
                                                                                              Width (model.PageWidth * model.PageScale) ] [] ] ] 
                                                       pageControlView model dispatch
                                                       br [] 
-                                                      paginationTile model dispatch ]
+                                                      paginationView model dispatch ]
                                                 | None -> [ str "No hay archivos Cargados" ] ) ) ] ] ]
