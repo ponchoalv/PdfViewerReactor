@@ -19,7 +19,6 @@ type Msg =
     | UpdateFieldFileName of string
     | IncrementCurrentPage
     | DecrementCurrentPage
-    | NoChange
     | FileLoaded of Fable.Import.Browser.Blob
     | ErrorMsg of exn
     | LoadFile of string
@@ -33,6 +32,8 @@ type Msg =
     | UpdateZoomEditingStatus
     | UpdateZoomFieldValue of string
 
+
+// Model is the state of the app
 type Model =
     { CurrentPage : int
       NumPages : int option
@@ -49,16 +50,20 @@ type Model =
       PageWidth: float }
 
 
-let onDocumentLoad (dispatch : Msg -> unit) (pdf : Pdf) =
-    // Browser.console.log (sprintf "Number of pages %i" pdf.pdfInfo.numPages)
-    dispatch (SetNumPages pdf.pdfInfo.numPages)
+// Function used on Files or http requests (Impure)
+[<AutoOpen>]
+module ReactPdfImpureFunctions = 
+    let onDocumentLoad (dispatch : Msg -> unit) (pdf : Pdf) =
+        dispatch (SetNumPages pdf.pdfInfo.numPages)
 
-let getFile filename =
-    promise
-        {
-        return! Fetch.fetch (sprintf "http://localhost:8080/%s" filename) []
-                |> Promise.bind (fun fetched -> fetched.blob()) }
+    let getFile filename =
+        promise
+            {
+            return! Fetch.fetch (sprintf "http://localhost:8080/%s" filename) []
+                    |> Promise.bind (fun fetched -> fetched.blob()) }
 
+
+// Initial State
 let init() : Model * Cmd<Msg> =
     { CurrentPage = 1
       NumPages = None
@@ -74,10 +79,15 @@ let init() : Model * Cmd<Msg> =
       ZoomFieldState = "100" 
       ErrorMsg = None }, Cmd.ofPromise getFile "analyzing-visualizing-data-f-sharp.pdf" FileLoaded ErrorMsg
 
+// State change management
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     match model, msg with
+    
+    // Document total Pages State 
     | _, SetNumPages numPages -> { model with NumPages = Some numPages
                                               IsPageNumberDisabled = true }, Cmd.none
+    
+    // Pagination and page number info state management
     | _, IncrementCurrentPage -> match model.CurrentPage with
                                     | page when page >= model.NumPages.Value -> model, Cmd.none
                                     | _ -> { model with CurrentPage = (model.CurrentPage + 1) },  Cmd.ofMsg IncrementPageNumberFieldState                                                        
@@ -89,9 +99,12 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _, SetPage pageNum -> { model with CurrentPage = pageNum
                                          IsPageNumberDisabled = true
                                          PageNumberFieldState = pageNum }, Cmd.none
-    | _, NoChange -> model, Cmd.none
+    
+    // Errors State
     | _, ErrorMsg exp -> { model with ErrorMsg = Some exp.Message
                                       FileName = "" }, Cmd.none
+    
+    // Pdf File State
     | _, FileLoaded file ->
         { model with File = Some file
                      CurrentPage = 1
@@ -101,8 +114,12 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
                                            File = None
                                            ErrorMsg = None }, Cmd.ofPromise getFile fileName FileLoaded ErrorMsg
     | _, UpdateFieldFileName filename -> { model with FieldFileName = Some filename }, Cmd.none
+    
+    // Page Field State
     | _, UpdatePageField page -> { model with PageNumberFieldState = page }, Cmd.none
     | _, UpdatePageEditingStatus -> { model with IsPageNumberDisabled = not model.IsPageNumberDisabled }, Cmd.none
+    
+    // Zoom State
     | _, IncrementZoom -> { model with PageScale = model.PageScale + 0.1
                                        ZoomFieldState = (sprintf "%3.0f" ((model.PageScale + 0.1) * 100.)) }, Cmd.none
     | _, DecrementZoom -> { model with PageScale = model.PageScale - 0.1
@@ -111,72 +128,74 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _, UpdateZoomFieldValue value -> { model with ZoomFieldState = value }, Cmd.none 
     | _, UpdateZoomEditingStatus -> { model with IsZoomFieldEditingDisabled = not model.IsZoomFieldEditingDisabled }, Cmd.none
 
-let private paginationView model dispatch =
-    paginationTile 
-        model.NumPages
-        model.CurrentPage
-        (fun _ -> dispatch DecrementCurrentPage)
-        (fun _ -> dispatch IncrementCurrentPage)
-        (fun page -> (fun _ -> dispatch (SetPage page)))
-        model.MaxItems 
-let private fileShowFieldsView model =
-    fileShowField model.FileName
+[<AutoOpen>]
+module ReactPDFViewParts =
+    let paginationView model dispatch =
+        paginationTile 
+            model.NumPages
+            model.CurrentPage
+            (fun _ -> dispatch DecrementCurrentPage)
+            (fun _ -> dispatch IncrementCurrentPage)
+            (fun page -> (fun _ -> dispatch (SetPage page)))
+            model.MaxItems 
+    let fileShowFieldsView model =
+        fileShowField model.FileName
 
-let private fileSearchFieldsView model dispatch =
-    let loadFileAction filename = dispatch (LoadFile filename)
-    
-    fileSearchField model.FieldFileName
-        (fun e -> dispatch (UpdateFieldFileName !!e.Value))
-        loadFileAction
+    let fileSearchFieldsView model dispatch =
+        let loadFileAction filename = dispatch (LoadFile filename)
+        
+        fileSearchField model.FieldFileName
+            (fun e -> dispatch (UpdateFieldFileName !!e.Value))
+            loadFileAction
 
-let private headerTile model dispatch =
-    Tile.child [] [ Box.box' [] [ Columns.columns [] [ fileShowFieldsView model
-                                                       fileSearchFieldsView model dispatch ] ] ]
+    let headerTile model dispatch =
+        Tile.child [] [ Box.box' [] [ Columns.columns [] [ fileShowFieldsView model
+                                                           fileSearchFieldsView model dispatch ] ] ]
 
-// Vista que muestra y maneja los numeros de pagina.
-let private pageNumberFieldView model dispatch =
-    let setPageFunc = (fun _ -> dispatch (SetPage model.PageNumberFieldState))
+    // Vista que muestra y maneja los numeros de pagina.
+    let pageNumberFieldView model dispatch =
+        let setPageFunc = (fun _ -> dispatch (SetPage model.PageNumberFieldState))
 
-    pageNumberField model.PageNumberFieldState 
-        model.NumPages
-        (fun e -> dispatch (UpdatePageField !!e.Value))
-        setPageFunc
-        setPageFunc
-        (fun _ -> dispatch UpdatePageEditingStatus)
-        (not model.IsPageNumberDisabled)
+        pageNumberField model.PageNumberFieldState 
+            model.NumPages
+            (fun e -> dispatch (UpdatePageField !!e.Value))
+            setPageFunc
+            setPageFunc
+            (fun _ -> dispatch UpdatePageEditingStatus)
+            (not model.IsPageNumberDisabled)
 
-// Vista que maneja el zoom de la pagina
-let private zoomFieldView model dispatch =
-    let setZoomFunc = (fun _ -> dispatch SetZoom)
+    // Vista que maneja el zoom de la pagina
+    let zoomFieldView model dispatch =
+        let setZoomFunc = (fun _ -> dispatch SetZoom)
 
-    zoomField model.ZoomFieldState 
-        (fun e -> dispatch (UpdateZoomFieldValue !!e.Value))
-        setZoomFunc
-        setZoomFunc
-        model.IsZoomFieldEditingDisabled
-        (fun _ -> dispatch UpdateZoomEditingStatus)
-        model.PageScale
-        (fun _ -> dispatch IncrementZoom)
-        (fun _ -> dispatch DecrementZoom)
+        zoomField model.ZoomFieldState 
+            (fun e -> dispatch (UpdateZoomFieldValue !!e.Value))
+            setZoomFunc
+            setZoomFunc
+            model.IsZoomFieldEditingDisabled
+            (fun _ -> dispatch UpdateZoomEditingStatus)
+            model.PageScale
+            (fun _ -> dispatch IncrementZoom)
+            (fun _ -> dispatch DecrementZoom)
 
-let private pageControlView model dispatch = 
-     Tile.child [ ] 
-        [ Box.box' [ ] [
-                    Columns.columns [] [
-                        Column.column [ Column.Width (Screen.All, Column.Is4) ] 
-                            [ zoomFieldView model dispatch ]
-                        Column.column [] []
-                        Column.column [Column.Width (Screen.All, Column.Is4) ] 
-                            [ pageNumberFieldView model dispatch ] ] ] ] 
+    let pageControlView model dispatch = 
+         Tile.child [ ] 
+            [ Box.box' [ ] [
+                        Columns.columns [] [
+                            Column.column [ Column.Width (Screen.All, Column.Is4) ] 
+                                [ zoomFieldView model dispatch ]
+                            Column.column [] []
+                            Column.column [Column.Width (Screen.All, Column.Is4) ] 
+                                [ pageNumberFieldView model dispatch ] ] ] ] 
 
+// Define Main View
 let view (model : Model) (dispatch : Msg -> unit) =
     Tile.ancestor []
         [ Tile.parent [ Tile.IsVertical
                         Tile.Size Tile.Is10 ]
-              [ headerTile model dispatch
-
-                Tile.child [ Tile.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
-                     [ (match model.ErrorMsg with
+              [ yield headerTile model dispatch
+                yield Tile.child [ Tile.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
+                            [ (match model.ErrorMsg with
                                 | Some error -> Field.div [] 
                                                     [ Tag.list [ Tag.List.HasAddons; Tag.List.IsCentered ] 
                                                           [ Tag.tag [ Tag.Color Color.IsDanger
@@ -184,11 +203,11 @@ let view (model : Model) (dispatch : Msg -> unit) =
                                 | None -> Box.box' []
                                             (match model.File with
                                                 | Some file ->
-                                                    [ Box.box' [] [ yield pdfReact [  File file
-                                                                                      OnLoadSuccess(onDocumentLoad dispatch) ]
+                                                    [ yield Box.box' [] [ yield pdfReact [  File file
+                                                                                            OnLoadSuccess(onDocumentLoad dispatch) ]
                                                                            [ yield pdfPage [ PageNumber model.CurrentPage
                                                                                              Width (model.PageWidth * model.PageScale) ] [] ] ] 
-                                                      pageControlView model dispatch
-                                                      br [] 
-                                                      paginationView model dispatch ]
+                                                      yield pageControlView model dispatch
+                                                      yield br [] 
+                                                      yield paginationView model dispatch ]
                                                 | None -> [ str "No hay archivos Cargados" ] ) ) ] ] ]
