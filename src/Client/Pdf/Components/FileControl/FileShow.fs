@@ -14,5 +14,3 @@ let fileShowField targetValue =
                                                                            Input.IsReadOnly true
                                                                            Input.IsStatic true
                                                                            Input.Value targetValue ] ] ] ] ] ]
-
-

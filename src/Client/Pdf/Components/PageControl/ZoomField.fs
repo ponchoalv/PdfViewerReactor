@@ -27,11 +27,11 @@ let zoomField targetValue onChangeAction onKeyDownAction onBlurAction editStateT
                               str (sprintf "%3.0f%%" (scaleValueTarget * 100.)) ]  
                       Control.p [ ]
                         [ Button.a
-                            [ Button.Color IsInfo
-                              Button.OnClick incrementAction]
-                            [ str "+" ] ]
-                      Control.p [ ]
-                        [ Button.a
                             [ Button.Color IsDanger
                               Button.OnClick decrementAction ]
-                            [ str "-" ] ] ] ]
+                            [ str "-" ] ]
+                      Control.p [ ] 
+                        [ Button.a
+                            [ Button.Color IsInfo
+                              Button.OnClick incrementAction]
+                            [ str "+" ] ] ] ]

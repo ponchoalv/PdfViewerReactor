@@ -12,7 +12,6 @@ type Msg = ReactPDF.Msg
 
 let init() : Model * Cmd<Msg> = ReactPDF.init()
 let update (msg : Msg) (model : Model) : Model * Cmd<Msg> = ReactPDF.update msg model
-
 let safeComponents =
     let intersperse sep ls =
         List.foldBack (fun x ->
@@ -30,7 +29,7 @@ let safeComponents =
         |> intersperse (str ", ")
         |> span []
 
-    p [] [ strong [] [ str "SAFE Template" ]
+    p [] [ strong [] [ str "Pdf Viewer" ]
            str " powered by: "
            components ]
 

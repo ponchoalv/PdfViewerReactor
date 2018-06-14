@@ -1,10 +1,8 @@
 module ReactPDF
 
 open Elmish
-open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Helpers.React
-open Fable.Import.React
 open Fable.PowerPack
 open Fulma
 
@@ -13,6 +11,7 @@ open PageNumbField
 open FileShow
 open FileSearch
 open Paginator
+open PdfComponent
 
 type Msg =
     | SetNumPages of int
@@ -34,26 +33,6 @@ type Msg =
     | UpdateZoomEditingStatus
     | UpdateZoomFieldValue of string
 
-[<Pojo>]
-type PdfInfo =
-    { numPages : int }
-
-[<Pojo>]
-type Pdf =
-    { pdfInfo : PdfInfo }
-
-type PdfProps =
-    | File of Fable.Import.Browser.Blob  
-    | OnLoadSuccess of (Pdf -> unit)
-    | ClassName of string
-
-type PdfPageProps =
-    | PageNumber of int
-    | PageIndex of int
-    | Width of float
-    | Scale of float
-    | ClassName of string
-
 type Model =
     { CurrentPage : int
       NumPages : int option
@@ -69,10 +48,6 @@ type Model =
       ErrorMsg: string option
       PageWidth: float }
 
-let inline pdfReact (props : PdfProps list) (elems : ReactElement list) : ReactElement =
-    ofImport "Document" "react-pdf/dist/entry.webpack" (keyValueList CaseRules.LowerFirst props) elems
-let inline pdfPage (props : PdfPageProps list) (elems : ReactElement list) : ReactElement =
-    ofImport "Page" "react-pdf/dist/entry.webpack" (keyValueList CaseRules.LowerFirst props) elems
 
 let onDocumentLoad (dispatch : Msg -> unit) (pdf : Pdf) =
     // Browser.console.log (sprintf "Number of pages %i" pdf.pdfInfo.numPages)
@@ -135,7 +110,6 @@ let update (msg : Msg) (model : Model) : Model * Cmd<Msg> =
     | _, SetZoom -> { model with PageScale = (float model.ZoomFieldState) / 100.}, Cmd.ofMsg UpdateZoomEditingStatus
     | _, UpdateZoomFieldValue value -> { model with ZoomFieldState = value }, Cmd.none 
     | _, UpdateZoomEditingStatus -> { model with IsZoomFieldEditingDisabled = not model.IsZoomFieldEditingDisabled }, Cmd.none
-
 
 let private paginationView model dispatch =
     paginationTile 

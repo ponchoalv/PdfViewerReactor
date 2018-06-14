@@ -5,7 +5,6 @@ open Fulma
 
 open Utils
 
-
 let fileSearchField (targetValue: string option) onChangeAction (loadFileAction: string -> unit) =  
       let loadFile = 
             (fun _ -> match targetValue with
