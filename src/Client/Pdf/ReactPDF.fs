@@ -12,6 +12,7 @@ open FileShow
 open FileSearch
 open Paginator
 open PdfComponent
+open WidthAdjust
 
 type Msg =
     | SetNumPages of int
@@ -178,15 +179,17 @@ module ReactPDFViewParts =
             (fun _ -> dispatch IncrementZoom)
             (fun _ -> dispatch DecrementZoom)
 
+
+    // TODO: Add Switch (bulma-switch) for setting the pdf witdh to the parent component width - 20px
     let pageControlView model dispatch = 
          Tile.child [ ] 
-            [ Box.box' [ ] [
-                        Columns.columns [] [
-                            Column.column [ Column.Width (Screen.All, Column.Is4) ] 
-                                [ zoomFieldView model dispatch ]
-                            Column.column [] []
-                            Column.column [Column.Width (Screen.All, Column.Is4) ] 
-                                [ pageNumberFieldView model dispatch ] ] ] ] 
+            [ Box.box' [ ] 
+                [ Columns.columns [] 
+                    [ Column.column [ Column.Width (Screen.All, Column.Is4) ] 
+                        [ zoomFieldView model dispatch ]
+                      Column.column [] [ widthAdjustTile ]
+                      Column.column [Column.Width (Screen.All, Column.Is4) ] 
+                          [ pageNumberFieldView model dispatch ] ] ] ] 
 
 // Define Main View
 let view (model : Model) (dispatch : Msg -> unit) =

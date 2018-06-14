@@ -10,6 +10,7 @@
     <Compile Include="Pdf\Components\FileControl\FileShow.fs" />
     <Compile Include="Pdf\Components\PageControl\EditField.fs" />
     <Compile Include="Pdf\Components\PageControl\PageNumbField.fs" />
+    <Compile Include="Pdf\Components\PageControl\WidthAdjust.fs" />
     <Compile Include="Pdf\Components\PageControl\ZoomField.fs" />
     <Compile Include="Pdf\Components\Paginator.fs" />
     <Compile Include="Pdf\Components\PdfComponent.fs" />
