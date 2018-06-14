@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\Shared.fs" />
+    <Compile Include="Pdf\Components\Utils.fs" />
+    <Compile Include="Pdf\Components\FileControl\FileSearch.fs" />
+    <Compile Include="Pdf\Components\FileControl\FileShow.fs" />
+    <Compile Include="Pdf\Components\PageControl\EditField.fs" />
+    <Compile Include="Pdf\Components\PageControl\PageNumbField.fs" />
+    <Compile Include="Pdf\Components\PageControl\ZoomField.fs" />
+    <Compile Include="Pdf\Components\Paginator.fs" />
+    <Compile Include="Pdf\ReactPDF.fs" />
+    <Compile Include="Client.fs" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
