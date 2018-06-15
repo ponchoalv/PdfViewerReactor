@@ -196,8 +196,8 @@ let view (model : Model) (dispatch : Msg -> unit) =
     Tile.ancestor []
         [ Tile.parent [ Tile.IsVertical
                         Tile.Size Tile.Is10 ]
-              [ yield headerTile model dispatch
-                yield Tile.child [ Tile.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
+              [ headerTile model dispatch
+                Tile.child [ Tile.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
                             [ (match model.ErrorMsg with
                                 | Some error -> Field.div [] 
                                                     [ Tag.list [ Tag.List.HasAddons; Tag.List.IsCentered ] 
@@ -206,11 +206,11 @@ let view (model : Model) (dispatch : Msg -> unit) =
                                 | None -> Box.box' []
                                             (match model.File with
                                                 | Some file ->
-                                                    [ yield Box.box' [] [ yield pdfReact [  File file
-                                                                                            OnLoadSuccess(onDocumentLoad dispatch) ]
+                                                    [ Box.box' [] [ yield pdfReact [  File file
+                                                                                      OnLoadSuccess(onDocumentLoad dispatch) ]
                                                                            [ yield pdfPage [ PageNumber model.CurrentPage
                                                                                              Width (model.PageWidth * model.PageScale) ] [] ] ] 
-                                                      yield pageControlView model dispatch
-                                                      yield br [] 
-                                                      yield paginationView model dispatch ]
+                                                      pageControlView model dispatch
+                                                      br [] 
+                                                      paginationView model dispatch ]
                                                 | None -> [ str "No hay archivos Cargados" ] ) ) ] ] ]
