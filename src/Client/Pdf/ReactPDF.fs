@@ -60,7 +60,7 @@ module ReactPdfImpureFunctions =
     let getFile filename =
         promise
             {
-            return! Fetch.fetch (sprintf "http://localhost:8080/%s" filename) []
+            return! Fetch.fetch (sprintf "pdfs/%s" filename) []
                     |> Promise.bind (fun fetched -> fetched.blob()) }
 
 

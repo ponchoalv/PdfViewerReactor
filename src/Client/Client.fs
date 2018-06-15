@@ -41,7 +41,7 @@ let show =
 let view (model : Model) (dispatch : Msg -> unit) =
     div []
         [ Navbar.navbar [ Navbar.Color IsPrimary ] [ Navbar.Item.div [] [ Heading.h1 [Heading.Modifiers [Modifier.TextColor Color.IsWhite]] [ str "Pdf Viewer!" ] ] ]
-          Container.container [] [ yield ReactPDF.view model dispatch ]
+          Container.container [] [ ReactPDF.view model dispatch ]
           br []
           Footer.footer []
               [ Content.content [ Content.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
