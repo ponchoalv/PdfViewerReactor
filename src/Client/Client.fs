@@ -40,15 +40,17 @@ let show =
 
 let view (model : Model) (dispatch : Msg -> unit) =
     div []
-        [ Navbar.navbar [ Navbar.Color IsPrimary ] [ Navbar.Item.div [] [ Heading.h1 [Heading.Modifiers [Modifier.TextColor Color.IsWhite]] [ str "Pdf Viewer!" ] ] ]
+        [ Navbar.navbar [ Navbar.Color IsPrimary ] [ 
+            Container.container [] 
+                [ Navbar.Item.div [] [ Heading.h1 [Heading.Modifiers [Modifier.TextColor Color.IsWhite]] [ str "Pdf Viewer!" ] ] ] ] 
           Container.container [] [ ReactPDF.view model dispatch ]
           br []
           Footer.footer []
-              [ Content.content [ Content.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
-                    [ safeComponents ] ] ]
+            [ Content.content [ Content.Modifiers [ Modifier.TextAlignment(Screen.All, TextAlignment.Centered) ] ]
+                [ safeComponents ] ] ]
 
 #if DEBUG
-open Elmish.Debug
+open Elmish.Debug   
 open Elmish.HMR
 #endif
 

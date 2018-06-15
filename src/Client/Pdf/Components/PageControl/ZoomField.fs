@@ -11,7 +11,7 @@ let zoomField targetValue onChangeAction onKeyDownAction onBlurAction editStateT
     Notification.notification [ Notification.Color Color.IsLight 
                                 Notification.Props [ Tooltip.dataTooltip "Doble-Click para editar el zoom del documento" ]
                                 Notification.CustomClass Tooltip.ClassName ] 
-        [ Field.div [ Field.IsGroupedCentered ]
+        [ Field.div [ Field.IsGrouped ]
                     [ editableField [ Input.Value targetValue
                                       Input.OnChange onChangeAction
                                       Input.Props 
