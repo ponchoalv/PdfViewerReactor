@@ -41,7 +41,7 @@ module.exports = {
                 changeOrigin: true
             }
         },
-        contentBase: "./public",
+        contentBase: "./public/",
         hot: true,
         inline: true,
         port: 8080

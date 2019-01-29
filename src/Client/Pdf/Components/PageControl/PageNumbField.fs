@@ -29,4 +29,4 @@ let pageNumberField valueTarget totalPages onChangeAction onKeyDownAction onBlur
                                     str (sprintf "%i " valueTarget) 
                                     str (sprintf "de %i" pages) ] ]
         | None -> 
-             span [] [str "No se Cargó ningún documento"])
+            span [] [str "No se Cargó ningún documento"])
